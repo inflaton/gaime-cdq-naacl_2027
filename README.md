@@ -97,9 +97,9 @@ library only; no third-party packages), `curl`, and a Hugging Face token with ac
 gated models (`export HF_TOKEN=…`; it is passed to the container only as an environment
 variable and never written to disk by these scripts).
 
+From the repository root, run:
+
 ```bash
-git clone https://gitlab.com/mastercard-research/gaime-cdq-naacl_2027.git
-cd gaime-cdq-naacl_2027
 python3 src/public/walmart_amazon_dgx.py prepare   # download the 13.8 MB archive, verify, reserve, retrieve
 bash scripts/selftest-public-dgx.sh                # optional: runner + evaluator against stand-in servers, no GPU (~10 s)
 bash scripts/run_public.sh                         # Gemma pilot+run -> Muse pilot+run -> evaluate (~3 h)
@@ -169,5 +169,12 @@ released pipeline resolves the final verdict per query.
 
 ## License
 
-To be added by the authors before public release (the Walmart–Amazon data keep their original
-terms; the model weights keep their Hugging Face licences).
+Original code, scripts, the prompt template, documentation and author-created analysis
+artifacts are released under the [BSD 3-Clause License](LICENSE), the same software license
+used by [DeepMatcher](https://github.com/anhaidgroup/deepmatcher/blob/master/LICENSE).
+
+This license does not relicense Walmart–Amazon source records, reference labels or other
+third-party content, including source content reproduced in the released results. The raw
+dataset archive contains no separate license notice; DeepMatcher's software license is not
+treated here as a license grant for that data. Model weights retain their providers' terms.
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for provenance and license scope.
