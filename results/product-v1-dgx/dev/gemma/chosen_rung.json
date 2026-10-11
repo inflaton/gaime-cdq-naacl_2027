@@ -1,0 +1,10 @@
+{
+  "rung": 1,
+  "valid": 25,
+  "n": 25,
+  "truncated": 0,
+  "other_errors": 0,
+  "schema_rejected": false,
+  "decided_at_utc": "2026-10-10T13:48:06.701941+00:00",
+  "basis": "development pilot validity only; no reference labels read"
+}

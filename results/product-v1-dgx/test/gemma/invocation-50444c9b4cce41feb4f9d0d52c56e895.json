@@ -1,0 +1,67 @@
+{
+  "started_at_utc": "2026-10-10T13:48:07.044995+00:00",
+  "host": "spark-7fc1",
+  "platform": "Linux-6.17.0-1031-nvidia-aarch64-with-glibc2.39",
+  "server": {
+    "served_models": [
+      "gemma4:31b-bf16-vllm"
+    ],
+    "base_url": "http://127.0.0.1:8000/v1"
+  },
+  "rung": 1,
+  "workers": 16,
+  "vllm_image": "vllm/vllm-openai:nightly-e962733e08d10f7ca65dac4df99e116460b8b174",
+  "request_example": {
+    "model": "gemma4:31b-bf16-vllm",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<prompt>"
+      }
+    ],
+    "max_tokens": 4096,
+    "temperature": 0,
+    "seed": 42,
+    "stop": [
+      "\n \n \n \n",
+      "\n\n\n\n\n"
+    ],
+    "repetition_penalty": 1.12,
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    },
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "product_verdict",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "row_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "match_confidence": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "evidence": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "row_id",
+            "match_confidence",
+            "evidence"
+          ]
+        }
+      }
+    }
+  }
+}

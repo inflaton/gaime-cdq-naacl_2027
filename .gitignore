@@ -1,0 +1,12 @@
+# Downloaded dataset and derived splits (recreated by `prepare`; verified by checksum)
+data/public/walmart-amazon/
+# Local run outputs (the paper's run is committed under results/)
+logs/
+*.lock
+__pycache__/
+*.pyc
+# Never
+.env
+*.safetensors
+*.bin
+*.pt
