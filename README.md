@@ -1,7 +1,7 @@
 # Public validation of agreement-based curation on Walmart–Amazon
 
 Code, protocol records and results for the **Public Validation** section of the paper
-*(submitted to ARR, October 2026; title and authors withheld during review)*. The paper's
+*(under review, NAACL 2027 Industry Track; title and authors withheld during review)*. The paper's
 main experiments use merchant data that cannot be released. This repository repeats the
 *curation step* — two local LLM judges labelling retrieval candidates, with labels kept only
 where both judges agree above a confidence gate — on the public Walmart–Amazon
@@ -52,7 +52,9 @@ paper's table and macros from it (`python3 paper/public_values.py --from-json --
   never used for selection or retrieval.
 * **Prompt.** `data/prompts/product_curation_v1.txt` (SHA-256 `4cee9041…392960`), a
   product-specific rubric replacing the merchant prompt; the judge returns
-  `{row_id, match_confidence, evidence}` (schema in `walmart_amazon.py`, `SCHEMA`).
+  `{row_id, match_confidence, evidence}` (schema in `walmart_amazon.py`, `SCHEMA`). `row_id` is
+  the selected candidate's identifier; the merchant judge's verdict carries the same field, which
+  the paper writes as `merchant_id` (the product team's name for it).
 * **Judges and settings** — identical to the paper's merchant curation cells:
 
   | | Gemma 4 31B | Muse Glimmer 30B |
