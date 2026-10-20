@@ -7,7 +7,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
-PY="${PUBLIC_PYTHON:-$(command -v python || command -v python3)}"
+PY="${GAIME_PYTHON:-$(command -v python || command -v python3)}"
 D=src/public/walmart_amazon_dgx.py
 TMP="$(mktemp -d)"; export PUBLIC_RUNS_DIR="$TMP/runs"
 PG=$(( 18100 + RANDOM % 400 )); PM=$(( PG + 1 ))

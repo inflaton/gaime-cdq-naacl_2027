@@ -68,9 +68,13 @@ paper's table and macros from it (`python3 paper/public_values.py --from-json --
   | Concurrency | 16 requests | 16 |
   | vLLM | `vllm/vllm-openai:nightly-e962733e08d10f7ca65dac4df99e116460b8b174`, `--dtype bfloat16 --max-model-len 32768 --max-num-seqs 16 --gpu-memory-utilization 0.85 --enable-prefix-caching --trust-remote-code` | same |
 
-* **Gates.** Selection gate 0.86, abstention gate 0.80 (the paper's production gates). A query
-  is *retained* when both judges select the same candidate with confidence ≥ 0.86 (positive)
-  or both abstain with confidence ≥ 0.80 (negative); otherwise it is deferred.
+* **Gates.** Selection gate 0.86, abstention gate 0.80 (the paper's inherited curation gates).
+  Both gates threshold the judge's *selection* confidence; there is no confidence in a
+  no-match label. A query is *retained* as a **positive** when both judges select the same
+  candidate with confidence ≥ 0.86, and as a **negative** when neither judge has a selection
+  with confidence ≥ 0.80 — that is, each judge either abstains outright (`row_id: null`) or
+  selects a candidate that the 0.80 gate rejects. Shared gate rejections therefore count as
+  negatives. Every other query is deferred.
 * **Adjustment ladder (development queries only).** 25 development queries are run first.
   Rung 1 is the cap/structured setting above; rung 2 raises the cap to 8,192 if any pilot
   response is truncated; rung 3 forces the schema for Muse if verdicts fail the parser for
@@ -99,9 +103,9 @@ library only; no third-party packages), `curl`, and a Hugging Face token with ac
 gated models (`export HF_TOKEN=…`; it is passed to the container only as an environment
 variable and never written to disk by these scripts).
 
-From the repository root, run:
-
 ```bash
+# during review: download the repository archive from the anonymized link and unpack it
+cd gaime-cdq-naacl_2027
 python3 src/public/walmart_amazon_dgx.py prepare   # download the 13.8 MB archive, verify, reserve, retrieve
 bash scripts/selftest-public-dgx.sh                # optional: runner + evaluator against stand-in servers, no GPU (~10 s)
 bash scripts/run_public.sh                         # Gemma pilot+run -> Muse pilot+run -> evaluate (~3 h)
@@ -171,12 +175,5 @@ released pipeline resolves the final verdict per query.
 
 ## License
 
-Original code, scripts, the prompt template, documentation and author-created analysis
-artifacts are released under the [BSD 3-Clause License](LICENSE), the same software license
-used by [DeepMatcher](https://github.com/anhaidgroup/deepmatcher/blob/master/LICENSE).
-
-This license does not relicense Walmart–Amazon source records, reference labels or other
-third-party content, including source content reproduced in the released results. The raw
-dataset archive contains no separate license notice; DeepMatcher's software license is not
-treated here as a license grant for that data. Model weights retain their providers' terms.
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for provenance and license scope.
+To be added by the authors before public release (the Walmart–Amazon data keep their original
+terms; the model weights keep their Hugging Face licences).

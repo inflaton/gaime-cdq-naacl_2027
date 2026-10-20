@@ -1,6 +1,6 @@
 {
   "started_at_utc": "2026-10-10T15:06:51.584289+00:00",
-  "host": "anonymous-host",
+  "host": "spark-7fc1",
   "platform": "Linux-6.17.0-1031-nvidia-aarch64-with-glibc2.39",
   "server": {
     "served_models": [
