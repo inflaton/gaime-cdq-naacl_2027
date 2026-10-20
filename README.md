@@ -108,8 +108,8 @@ these scripts).
 ```bash
 # during review: download cdq-naacl_2027.zip from the anonymized link
 # the archive has a flat root; extract it into a new directory
-unzip cdq-naacl_2027.zip -d gaime-cdq-naacl_2027
-cd gaime-cdq-naacl_2027
+unzip cdq-naacl_2027.zip -d cdq-naacl_2027
+cd cdq-naacl_2027
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
