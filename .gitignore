@@ -5,6 +5,7 @@ logs/
 *.lock
 __pycache__/
 *.pyc
+.venv/
 # Never
 .env
 *.safetensors

@@ -96,37 +96,65 @@ manifest, prompt template, released pipeline and DGX runner, is frozen in
 
 ## Reproduce
 
-Requirements: Linux with Docker and an NVIDIA GPU with enough memory for a 31B model in bf16
-plus a 32k-token KV cache at 16 concurrent requests (the paper used a DGX Spark, 128 GB unified
-memory; models are served one at a time), Python ≥ 3.10 (standard
-library only; no third-party packages), `curl`, and a Hugging Face token with access to both
-gated models (`export HF_TOKEN=…`; it is passed to the container only as an environment
-variable and never written to disk by these scripts).
+Preparation and validation require Python ≥ 3.10 and NumPy (installed from
+`requirements.txt` below). The archive instructions also use `unzip`.
+New judge runs additionally require Linux with Docker, `curl`, an NVIDIA GPU with enough
+memory for a 31B model in bf16 plus a 32k-token KV cache at 16 concurrent requests
+(the paper used a DGX Spark, 128 GB unified memory; models are served one at a time),
+and a Hugging Face token with access to both gated models (`export HF_TOKEN=…`; it is
+passed to the container only as an environment variable and never written to disk by
+these scripts).
 
 ```bash
-# during review: download the repository archive from the anonymized link and unpack it
+# during review: download cdq-naacl_2027.zip from the anonymized link
+# the archive has a flat root; extract it into a new directory
+unzip cdq-naacl_2027.zip -d gaime-cdq-naacl_2027
 cd gaime-cdq-naacl_2027
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+
+python3 paper/public_values.py --from-json --check  # verify the released table/macros
+python3 -m unittest discover -s tests -p 'test_*.py'
 python3 src/public/walmart_amazon_dgx.py prepare   # download the 13.8 MB archive, verify, reserve, retrieve
-bash scripts/selftest-public-dgx.sh                # optional: runner + evaluator against stand-in servers, no GPU (~10 s)
-bash scripts/run_public.sh                         # Gemma pilot+run -> Muse pilot+run -> evaluate (~3 h)
+bash scripts/selftest-public-dgx.sh               # runner + evaluator against stand-in servers, no GPU (~10 s)
 ```
 
-`run_public.sh` is a thin orchestration of the Python runner; the stages can be run by hand:
+With the GPU and model access ready, run:
+
+```bash
+bash scripts/run_public.sh                        # Gemma pilot+run -> Muse pilot+run -> evaluate (~3 h)
+```
+
+`run_public.sh` is a thin orchestration of the Python runner and waits for each model to
+finish loading. The stages can also be run by hand with the readiness waits below
+(if a server exits during loading, stop the wait and inspect its output):
 
 ```bash
 python3 src/public/walmart_amazon_dgx.py prepare               # download (13.8 MB), verify, reserve, retrieve
 bash scripts/serve_vllm.sh gemma &                             # vLLM, port 8000 (serves gemma4:31b-bf16-vllm)
+until curl -fsS http://127.0.0.1:8000/v1/models > /dev/null 2>&1; do sleep 5; done
 python3 src/public/walmart_amazon_dgx.py pilot --model gemma   # 25 dev queries -> dev/gemma/chosen_rung.json
 python3 src/public/walmart_amazon_dgx.py run   --model gemma   # 1,000 test queries -> test/gemma/responses.jsonl
 docker stop vllm-public-gemma
-bash scripts/serve_vllm.sh muse &  # ... then pilot and run with --model muse, docker stop vllm-public-muse
+bash scripts/serve_vllm.sh muse &
+until curl -fsS http://127.0.0.1:8000/v1/models > /dev/null 2>&1; do sleep 5; done
+python3 src/public/walmart_amazon_dgx.py pilot --model muse
+python3 src/public/walmart_amazon_dgx.py run   --model muse
+docker stop vllm-public-muse
 python3 src/public/walmart_amazon_dgx.py status
 python3 src/public/walmart_amazon_dgx.py evaluate              # -> test/evaluation.json (reads matches.csv)
 python3 paper/public_values.py                                 # paper table/macros from the new evaluation.json
 ```
 
 Outputs go to `data/public/walmart-amazon/runs/product-v1-dgx/` (set `PUBLIC_RUNS_DIR` to
-write elsewhere, e.g. to compare against `results/`). Stages are resumable: rows with a valid
+write elsewhere, e.g. to compare against `results/`). The runner and `paper/public_values.py`
+both honor this setting; relative paths are resolved from the current working directory.
+By default, the table generator requires a fresh `test/evaluation.json` in that run directory.
+Use `--from-json` explicitly to render the bundled paper snapshot, or `--from-json --check`
+to verify its committed table and macros without a new run.
+
+Stages are resumable: rows with a valid
 answer are skipped, and a recorded pilot rung is reused. Greedy decoding at temperature 0 is
 deterministic for a fixed vLLM build and batch composition, but concurrent batching can change
 floating-point reduction order, so individual verdicts near the gates may differ between
@@ -146,6 +174,8 @@ scripts/serve_vllm.sh                  vLLM launcher with the exact flags, one j
 scripts/run_public.sh                  end-to-end orchestration (resumable)
 scripts/selftest-public-dgx.sh         offline self-test with tests/fake_vllm_public.py (no GPU)
 tests/fake_vllm_public.py              stand-in OpenAI-compatible server for the self-test
+tests/test_public_values.py            regression checks for fresh and bundled evaluation sources
+requirements.txt                       Python dependency for evaluation (NumPy)
 results/product-v1-dgx/                the paper's run, complete:
   dev/{gemma,muse}/chosen_rung.json      ladder decision (rung 1 for both)
   dev/{gemma,muse}/rung-1/               pilot responses.jsonl, pilot_result.json, protocol/invocation

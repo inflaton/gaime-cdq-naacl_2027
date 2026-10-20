@@ -1,0 +1,2 @@
+# Paired bootstrap evaluation in src/public/walmart_amazon.py.
+numpy>=1.23.5,<3

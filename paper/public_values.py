@@ -2,11 +2,15 @@
 """Write data/public_values.tex and table_public.tex from the DGX public-validation evaluation.
 
     python public_values.py            # from the repo's evaluation.json (refreshes the local copy)
-    python public_values.py --check    # verify the committed outputs
+    python public_values.py --check    # verify the outputs against the fresh evaluation
     python public_values.py --from-json  # re-render from data/public_evaluation.json (no repo access)
+    python public_values.py --from-json --check  # verify the bundled snapshot's outputs
 
 Source: data/public/walmart-amazon/runs/product-v1-dgx/test/evaluation.json, written by
 src/public/walmart_amazon_dgx.py evaluate with the released scorer (walmart_amazon.py).
+PUBLIC_RUNS_DIR overrides the run directory, just as in the runner; relative paths are
+relative to the current working directory. Missing fresh results are an error; use
+--from-json explicitly to use the bundled snapshot.
 A copy is kept at data/public_evaluation.json so the paper folder stays self-contained; it
 holds only aggregates over the public Walmart-Amazon release (no merchant data). No inference.
 """
@@ -14,10 +18,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SOURCE = HERE.parents[1] / "data/public/walmart-amazon/runs/product-v1-dgx/test/evaluation.json"
+ROOT = HERE.parent
+RUNS = Path(os.environ.get("PUBLIC_RUNS_DIR") or ROOT / "data/public/walmart-amazon/runs/product-v1-dgx")
+SOURCE = RUNS / "test/evaluation.json"
 LOCAL = HERE / "data/public_evaluation.json"
 ROWS = (("dual_086_080", r"Pair $(0.86, 0.80)$", "Pair"), ("gemma_086_080", "Gemma 31B alone", "Gemma"),
         ("muse_086_080", "Muse 30B alone", "Muse"), ("dual_080_080", r"Pair $(0.80, 0.80)$", "PairEighty"),
@@ -97,15 +104,19 @@ if __name__ == "__main__":
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--from-json", action="store_true", help="use data/public_evaluation.json only")
     a = ap.parse_args()
-    if a.from_json or not SOURCE.exists():
+    if a.from_json:
         ev = json.loads(LOCAL.read_text())
     else:
+        if not SOURCE.is_file():
+            raise SystemExit(f"No fresh public evaluation at {SOURCE}. Run the evaluator first "
+                             "(or set PUBLIC_RUNS_DIR); use --from-json to use the bundled snapshot.")
         ev = json.loads(SOURCE.read_text())
-        if not a.check:
-            LOCAL.write_text(json.dumps(ev, indent=1) + "\n")
     if ev["n"] != 1000 or any(ev["operational"][j]["attempts"] != 1000 for j in ("gemma", "muse")):
         raise SystemExit("public evaluation is not the complete 1,000-query test; not writing")
-    for name, content in render(ev).items():
+    outputs = render(ev)
+    if not a.from_json and not a.check:
+        LOCAL.write_text(json.dumps(ev, indent=1) + "\n")
+    for name, content in outputs.items():
         path = HERE / name
         if a.check:
             if not path.exists() or path.read_text() != content:
