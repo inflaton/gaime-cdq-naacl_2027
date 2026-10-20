@@ -175,5 +175,7 @@ released pipeline resolves the final verdict per query.
 
 ## License
 
-To be added by the authors before public release (the Walmart–Amazon data keep their original
-terms; the model weights keep their Hugging Face licences).
+The original code, scripts, prompt template, documentation and author-created analysis artifacts
+are released under the BSD 3-Clause License (`LICENSE`). The Walmart–Amazon records keep their
+original terms and the model weights their Hugging Face licences; `THIRD_PARTY_NOTICES.md` sets
+out what the repository license does and does not cover.
