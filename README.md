@@ -36,7 +36,7 @@ first rung of the adjustment ladder (4,096-token cap, default structured-output 
 Gemma took 68 min of wall time (median final-call latency 62.6 s at 16 concurrent;
 3.07 M input / 82 k output tokens); Muse took 94 min (84.9 s; 2.85 M / 254 k). All numbers
 are in `results/product-v1-dgx/test/evaluation.json`; `paper/public_values.py` renders the
-paper's table and macros from it (`python3 paper/public_values.py --from-json --check`).
+paper's table and macros from it (`python paper/public_values.py --from-json --check`).
 
 ## Protocol (fixed before any inference)
 
@@ -110,13 +110,13 @@ these scripts).
 # the archive has a flat root; extract it into a new directory
 unzip cdq-naacl_2027.zip -d cdq-naacl_2027
 cd cdq-naacl_2027
-python3 -m venv .venv
+python -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 
-python3 paper/public_values.py --from-json --check  # verify the released table/macros
-python3 -m unittest discover -s tests -p 'test_*.py'
-python3 src/public/walmart_amazon_dgx.py prepare   # download the 13.8 MB archive, verify, reserve, retrieve
+python paper/public_values.py --from-json --check  # verify the released table/macros
+python -m unittest discover -s tests -p 'test_*.py'
+python src/public/walmart_amazon_dgx.py prepare   # download the 13.8 MB archive, verify, reserve, retrieve
 bash scripts/selftest-public-dgx.sh               # runner + evaluator against stand-in servers, no GPU (~10 s)
 ```
 
@@ -131,20 +131,20 @@ finish loading. The stages can also be run by hand with the readiness waits belo
 (if a server exits during loading, stop the wait and inspect its output):
 
 ```bash
-python3 src/public/walmart_amazon_dgx.py prepare               # download (13.8 MB), verify, reserve, retrieve
+python src/public/walmart_amazon_dgx.py prepare               # download (13.8 MB), verify, reserve, retrieve
 bash scripts/serve_vllm.sh gemma &                             # vLLM, port 8000 (serves gemma4:31b-bf16-vllm)
 until curl -fsS http://127.0.0.1:8000/v1/models > /dev/null 2>&1; do sleep 5; done
-python3 src/public/walmart_amazon_dgx.py pilot --model gemma   # 25 dev queries -> dev/gemma/chosen_rung.json
-python3 src/public/walmart_amazon_dgx.py run   --model gemma   # 1,000 test queries -> test/gemma/responses.jsonl
+python src/public/walmart_amazon_dgx.py pilot --model gemma   # 25 dev queries -> dev/gemma/chosen_rung.json
+python src/public/walmart_amazon_dgx.py run   --model gemma   # 1,000 test queries -> test/gemma/responses.jsonl
 docker stop vllm-public-gemma
 bash scripts/serve_vllm.sh muse &
 until curl -fsS http://127.0.0.1:8000/v1/models > /dev/null 2>&1; do sleep 5; done
-python3 src/public/walmart_amazon_dgx.py pilot --model muse
-python3 src/public/walmart_amazon_dgx.py run   --model muse
+python src/public/walmart_amazon_dgx.py pilot --model muse
+python src/public/walmart_amazon_dgx.py run   --model muse
 docker stop vllm-public-muse
-python3 src/public/walmart_amazon_dgx.py status
-python3 src/public/walmart_amazon_dgx.py evaluate              # -> test/evaluation.json (reads matches.csv)
-python3 paper/public_values.py                                 # paper table/macros from the new evaluation.json
+python src/public/walmart_amazon_dgx.py status
+python src/public/walmart_amazon_dgx.py evaluate              # -> test/evaluation.json (reads matches.csv)
+python paper/public_values.py                                 # paper table/macros from the new evaluation.json
 ```
 
 Outputs go to `data/public/walmart-amazon/runs/product-v1-dgx/` (set `PUBLIC_RUNS_DIR` to
